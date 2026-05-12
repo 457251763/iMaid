@@ -1,97 +1,60 @@
 @echo off
 chcp 65001 >nul
 echo.
-echo  ╔═══════════════════════════════════════════════════════════╗
-echo  ║           iMaid 智能桌宠 - 启动器                        ║
-echo  ╚═══════════════════════════════════════════════════════════╝
+echo  ==============================================================
+echo              iMaid - Startup Launcher
+echo  ==============================================================
 echo.
 
-:: 获取脚本所在目录
-set "SCRIPT_DIR=%~dp0"
-cd /d "%SCRIPT_DIR%"
+cd /d "%~dp0"
 
-:: 检查 Python 路径
-set "PYTHON_EXE=C:\Users\45725\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\python.exe"
+echo [1/5] Checking port status...
 
-if not exist "%PYTHON_EXE%" (
-    set "PYTHON_EXE=python"
-)
+set FRONTEND_RUNNING=0
+netstat -ano | findstr ":5173 " >nul 2>&1
+if not errorlevel 1 set FRONTEND_RUNNING=1
+if "%FRONTEND_RUNNING%"=="1" echo       Frontend already running (port 5173)
 
-:: 检查 npm
-where npm >nul 2>&1
-if errorlevel 1 (
-    echo [错误] 未找到 npm，请确保已安装 Node.js
-    pause
-    exit /b 1
-)
-
-echo [1/5] 检查端口状态...
-netstat -ano | findstr ":5173" >nul 2>&1
-if %errorlevel% equ 0 (
-    echo       前端服务已在运行 (端口 5173)
-    set "FRONTEND_RUNNING=1"
-) else (
-    set "FRONTEND_RUNNING=0"
-)
-
-netstat -ano | findstr ":8000" >nul 2>&1
-if %errorlevel% equ 0 (
-    echo       后端服务已在运行 (端口 8000)
-    set "BACKEND_RUNNING=1"
-) else (
-    set "BACKEND_RUNNING=0"
-)
+set BACKEND_RUNNING=0
+netstat -ano | findstr ":8000 " >nul 2>&1
+if not errorlevel 1 set BACKEND_RUNNING=1
+if "%BACKEND_RUNNING%"=="1" echo       Backend already running (port 8000)
 
 echo.
-echo [2/5] 启动后端服务...
-if %BACKEND_RUNNING% equ 1 (
-    echo       后端已启动，跳过
-) else (
-    start "iMaid-Backend" cmd /c "cd /d "%SCRIPT_DIR%backend" && %PYTHON_EXE% main.py"
-    echo       后端启动中 (端口 8000)...
-)
+echo [2/5] Starting backend...
+if "%BACKEND_RUNNING%"=="0" start "iMaid-Backend" cmd /c "cd /d %~dp0backend && python main.py"
+if "%BACKEND_RUNNING%"=="0" echo       Backend starting (port 8000)...
+if "%BACKEND_RUNNING%"=="1" echo       Backend already running, skip
 
 echo.
-echo [3/5] 启动前端服务...
-if %FRONTEND_RUNNING% equ 1 (
-    echo       前端已启动，跳过
-) else (
-    start "iMaid-Frontend" cmd /c "cd /d "%SCRIPT_DIR%frontend" && npm run dev"
-    echo       前端启动中 (端口 5173)...
-)
+echo [3/5] Starting frontend...
+if "%FRONTEND_RUNNING%"=="0" start "iMaid-Frontend" cmd /c "cd /d %~dp0frontend && npm run dev"
+if "%FRONTEND_RUNNING%"=="0" echo       Frontend starting (port 5173)...
+if "%FRONTEND_RUNNING%"=="1" echo       Frontend already running, skip
 
 echo.
-echo [4/5] 等待服务就绪...
+echo [4/5] Waiting for services...
 timeout /t 8 /nobreak >nul
 
-:: 检查服务是否启动成功
-netstat -ano | findstr ":5173" >nul 2>&1
-if %errorlevel% equ 0 (
-    echo       ✓ 前端服务已就绪
-) else (
-    echo       ✗ 前端服务启动失败
-)
+netstat -ano | findstr ":5173 " >nul 2>&1
+if not errorlevel 1 (echo       [OK] Frontend ready) else (echo       [FAIL] Frontend failed)
 
-netstat -ano | findstr ":8000" >nul 2>&1
-if %errorlevel% equ 0 (
-    echo       ✓ 后端服务已就绪
-) else (
-    echo       ✗ 后端服务启动失败
-)
+netstat -ano | findstr ":8000 " >nul 2>&1
+if not errorlevel 1 (echo       [OK] Backend ready) else (echo       [FAIL] Backend failed)
 
 echo.
-echo [5/5] 启动 Electron 应用...
-start "iMaid" cmd /c "cd /d "%SCRIPT_DIR%frontend" && npm run electron:dev"
+echo [5/5] Starting Electron app...
+start "iMaid" cmd /c "cd /d %~dp0frontend && npm run electron:dev"
 
 echo.
-echo ════════════════════════════════════════════════════════════
-echo  iMaid 已启动！
-echo ════════════════════════════════════════════════════════════
+echo  ==============================================================
+echo                iMaid started!
+echo  ==============================================================
 echo.
-echo  🌐 前端: http://localhost:5173
-echo  🌐 后端: http://localhost:8000
-echo  📖 API文档: http://localhost:8000/docs
+echo  Frontend: http://localhost:5173
+echo  Backend:  http://localhost:8000
+echo  API Docs: http://localhost:8000/docs
 echo.
-echo  💡 提示: 在系统托盘中找到 iMaid 图标，可右键查看菜单
+echo  Tip: Find iMaid icon in system tray
 echo.
 pause
