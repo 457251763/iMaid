@@ -1,0 +1,5 @@
+# iMaid 启动器依赖
+# 安装命令: pip install -r launcher_requirements.txt
+
+pystray==0.19.5
+Pillow==10.2.0

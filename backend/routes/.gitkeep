@@ -1,0 +1,8 @@
+# API 路由目录
+
+存放 FastAPI 路由定义
+
+包含:
+- /api/chat 聊天接口
+- /api/memory 记忆接口
+- /api/settings 设置接口

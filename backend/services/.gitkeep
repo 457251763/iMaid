@@ -1,0 +1,8 @@
+# LLM 服务目录
+
+存放大模型 API 适配器和调用逻辑
+
+包含:
+- DeepSeek API 适配器
+- MiniMax API 适配器
+- 统一调用接口

@@ -1,0 +1,8 @@
+# 数据模型目录
+
+存放 SQLAlchemy 数据模型
+
+包含:
+- Conversation 模型
+- Memory 模型
+- User 模型
