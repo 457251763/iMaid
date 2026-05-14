@@ -114,16 +114,38 @@ function createWindow() {
 
 // 创建系统托盘
 function createTray() {
-  const iconPath = path.join(__dirname, '../public/icon.png')
+  // 优先使用专用托盘图标，其次使用主图标
+  const iconPaths = [
+    path.join(__dirname, '../public/tray_icon.ico'),
+    path.join(__dirname, '../public/tray_icon.png'),
+    path.join(__dirname, '../public/icon.png')
+  ]
   
-  try {
-    require('fs').accessSync(iconPath)
-  } catch {
+  let iconPath = null
+  const fs = require('fs')
+  for (const p of iconPaths) {
+    try {
+      fs.accessSync(p)
+      iconPath = p
+      console.log(`[Tray] Found icon: ${p}`)
+      break
+    } catch {
+      console.log(`[Tray] Not found: ${p}`)
+    }
+  }
+  
+  if (!iconPath) {
     console.log('托盘图标不存在，跳过托盘创建')
     return
   }
 
-  tray = new Tray(iconPath)
+  try {
+    tray = new Tray(iconPath)
+    console.log(`[Tray] Created successfully with: ${iconPath}`)
+  } catch (err) {
+    console.error('[Tray] 创建失败:', err.message)
+    return
+  }
   
   const contextMenu = Menu.buildFromTemplate([
     {

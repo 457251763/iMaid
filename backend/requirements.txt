@@ -1,12 +1,20 @@
-fastapi==0.109.2
-uvicorn[standard]==0.27.1
-websockets==12.0
-pydantic==2.6.1
-pydantic-settings==2.1.0
-python-dotenv==1.0.1
-chromadb==0.4.22
-redis==5.0.1
-sqlalchemy==2.0.25
-openai==1.12.0
-httpx==0.26.0
-loguru==0.7.2
+# Web 框架 & 服务器
+fastapi>=0.115.0,<0.120.0
+uvicorn[standard]>=0.32.0,<0.35.0
+websockets>=14.0,<16.0
+
+# 数据验证
+pydantic>=2.9.0,<3.0.0
+pydantic-settings>=2.6.0,<3.0.0
+
+# 工具
+python-dotenv>=1.0.0,<2.0.0
+httpx>=0.27.0,<0.29.0
+loguru>=0.7.0,<0.8.0
+
+# 数据库 & 存储
+sqlalchemy>=2.0.0,<2.1.0
+redis>=5.0.0,<6.0.0
+
+# AI
+openai>=1.50.0,<2.0.0
