@@ -39,21 +39,32 @@ iMaid/
 
 ## 功能版本
 
-### v0.2 ✅ 已完成
-- [x] 悬浮窗口 (透明、置顶、可拖拽)
-- [x] 系统托盘
-- [x] 全局快捷键
-- [x] 启动脚本优化
+### v0.4 🚧 开发中
+- [ ] 大模型对话 (LLM Service)
+- [ ] Chat API 端点
+- [ ] WebSocket 实时通信
+- [ ] 状态机 (IDLE, LISTENING, THINKING, SPEAKING)
+- [ ] Live2D 状态联动动画
 
-### v0.3 🚧 开发中
-- [ ] Live2D 渲染
-- [ ] 角色动画系统
-- [ ] PIXI.js 集成
-
-### v0.4 📋 计划中
+### v0.5 📋 计划中
 - [ ] 语音服务
 - [ ] 热词唤醒
 - [ ] STT/TTS
+
+### v0.6 📋 计划中
+- [ ] 记忆系统 (ChromaDB)
+- [ ] 向量存储
+- [ ] 上下文注入
+
+### v0.3 ✅ 已完成
+- [x] Live2D 渲染 (pixi-live2d-display + PIXI.js)
+- [x] 模型加载系统 (ModelLoader 含缓存机制)
+- [x] 动画控制系统 (idle, speaking, tap, blink)
+- [x] 交互响应 (点击、双击、长按、鼠标跟随)
+- [x] 视线跟随功能 (startLookAtMouse)
+- [x] 自动眨眼动画
+- [x] 状态管理 (Zustand)
+- [x] 详细中文代码注释
 
 ## 快速开始
 
@@ -87,5 +98,5 @@ python main.py
 ## 开发人员
 
 - 维护者: iMaid Development Team
-- 版本: 1.0.0
-- 日期: 2026-05-11
+- 版本: 0.4.0
+- 日期: 2026-05-15
