@@ -12,21 +12,21 @@
     "electron:preview": "electron ."
   },
   "dependencies": {
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
-    "zustand": "^4.5.0",
-    "pixi.js": "^7.4.0",
-    "pixi-live2d-display": "^0.4.0"
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.1.0",
+    "concurrently": "^8.2.2",
     "electron": "^28.2.0",
     "electron-builder": "^24.9.1",
-    "concurrently": "^8.2.2",
+    "vite": "^5.1.0",
     "wait-on": "^7.2.0"
   },
   "build": {

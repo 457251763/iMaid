@@ -5,6 +5,7 @@ const isDev = process.env.NODE_ENV !== 'production' && !app.isPackaged
 
 // 窗口状态
 let mainWindow = null
+let settingsWindow = null
 let tray = null
 let voiceServiceProcess = null
 
@@ -17,7 +18,7 @@ function getHomeUrl() {
 }
 
 // 窗口配置
-const WINDOW_CONFIG = {
+const MAIN_WINDOW_CONFIG = {
   width: 320,
   height: 400,
   opacity: 0.95,
@@ -30,34 +31,58 @@ const WINDOW_CONFIG = {
   hasShadow: true
 }
 
+const SETTINGS_WINDOW_CONFIG = {
+  width: 480,
+  height: 560,
+  opacity: 1,
+  alwaysOnTop: false,
+  transparent: false,
+  frame: true,
+  resizable: true,
+  skipTaskbar: false,
+  focusable: true,
+  hasShadow: true
+}
+
 // 获取屏幕尺寸
 function getScreenPosition() {
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width, height } = primaryDisplay.workAreaSize
-  
+
   return {
-    x: width - WINDOW_CONFIG.width - 20,
-    y: height - WINDOW_CONFIG.height - 20
+    x: width - MAIN_WINDOW_CONFIG.width - 20,
+    y: height - MAIN_WINDOW_CONFIG.height - 20
+  }
+}
+
+// 获取屏幕中心位置
+function getScreenCenter(config) {
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width, height } = primaryDisplay.workAreaSize
+
+  return {
+    x: Math.round((width - config.width) / 2),
+    y: Math.round((height - config.height) / 2)
   }
 }
 
 // 创建主窗口 (悬浮模式)
 function createWindow() {
   const position = getScreenPosition()
-  
+
   mainWindow = new BrowserWindow({
-    width: WINDOW_CONFIG.width,
-    height: WINDOW_CONFIG.height,
+    width: MAIN_WINDOW_CONFIG.width,
+    height: MAIN_WINDOW_CONFIG.height,
     x: position.x,
     y: position.y,
-    opacity: WINDOW_CONFIG.opacity,
-    alwaysOnTop: WINDOW_CONFIG.alwaysOnTop,
-    transparent: WINDOW_CONFIG.transparent,
-    frame: WINDOW_CONFIG.frame,
-    resizable: WINDOW_CONFIG.resizable,
-    skipTaskbar: WINDOW_CONFIG.skipTaskbar,
-    focusable: WINDOW_CONFIG.focusable,
-    hasShadow: WINDOW_CONFIG.hasShadow,
+    opacity: MAIN_WINDOW_CONFIG.opacity,
+    alwaysOnTop: MAIN_WINDOW_CONFIG.alwaysOnTop,
+    transparent: MAIN_WINDOW_CONFIG.transparent,
+    frame: MAIN_WINDOW_CONFIG.frame,
+    resizable: MAIN_WINDOW_CONFIG.resizable,
+    skipTaskbar: MAIN_WINDOW_CONFIG.skipTaskbar,
+    focusable: MAIN_WINDOW_CONFIG.focusable,
+    hasShadow: MAIN_WINDOW_CONFIG.hasShadow,
     title: 'iMaid',
     backgroundColor: '#00000000',
     webPreferences: {
@@ -112,6 +137,55 @@ function createWindow() {
   })
 }
 
+// 创建设置窗口
+function createSettingsWindow() {
+  if (settingsWindow) {
+    settingsWindow.show()
+    settingsWindow.focus()
+    return
+  }
+
+  const center = getScreenCenter(SETTINGS_WINDOW_CONFIG)
+
+  settingsWindow = new BrowserWindow({
+    width: SETTINGS_WINDOW_CONFIG.width,
+    height: SETTINGS_WINDOW_CONFIG.height,
+    x: center.x,
+    y: center.y,
+    opacity: SETTINGS_WINDOW_CONFIG.opacity,
+    alwaysOnTop: SETTINGS_WINDOW_CONFIG.alwaysOnTop,
+    transparent: SETTINGS_WINDOW_CONFIG.transparent,
+    frame: SETTINGS_WINDOW_CONFIG.frame,
+    resizable: SETTINGS_WINDOW_CONFIG.resizable,
+    skipTaskbar: SETTINGS_WINDOW_CONFIG.skipTaskbar,
+    focusable: SETTINGS_WINDOW_CONFIG.focusable,
+    hasShadow: SETTINGS_WINDOW_CONFIG.hasShadow,
+    title: 'iMaid - 设置',
+    backgroundColor: '#ffffff',
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    },
+    show: false
+  })
+
+  // 加载设置页面
+  const settingsUrl = isDev
+    ? 'http://localhost:5173/#/settings'
+    : `file://${path.join(__dirname, '../dist/index.html')}#/settings`
+  settingsWindow.loadURL(settingsUrl)
+
+  settingsWindow.once('ready-to-show', () => {
+    settingsWindow.show()
+    console.log('iMaid 设置窗口已打开')
+  })
+
+  settingsWindow.on('closed', () => {
+    settingsWindow = null
+  })
+}
+
 // 创建系统托盘
 function createTray() {
   // 优先使用专用托盘图标，其次使用主图标
@@ -120,7 +194,7 @@ function createTray() {
     path.join(__dirname, '../public/tray_icon.png'),
     path.join(__dirname, '../public/icon.png')
   ]
-  
+
   let iconPath = null
   const fs = require('fs')
   for (const p of iconPaths) {
@@ -133,7 +207,7 @@ function createTray() {
       console.log(`[Tray] Not found: ${p}`)
     }
   }
-  
+
   if (!iconPath) {
     console.log('托盘图标不存在，跳过托盘创建')
     return
@@ -146,7 +220,7 @@ function createTray() {
     console.error('[Tray] 创建失败:', err.message)
     return
   }
-  
+
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '显示桌宠',
@@ -196,7 +270,6 @@ function toggleWindow() {
     } else {
       mainWindow.show()
       mainWindow.focus()
-      // 如果当前不在主页，则加载主页
       const currentUrl = mainWindow.webContents.getURL()
       if (!currentUrl.includes('#/') || currentUrl.endsWith('#/settings')) {
         mainWindow.loadURL(getHomeUrl())
@@ -213,17 +286,9 @@ function moveToCorner() {
   }
 }
 
-// 打开设置页面
+// 打开设置页面 (新窗口模式)
 function openSettings() {
-  if (mainWindow) {
-    mainWindow.show()
-    mainWindow.focus()
-    currentPage = '/settings'
-    const settingsUrl = isDev 
-      ? 'http://localhost:5173/#/settings' 
-      : `file://${path.join(__dirname, '../dist/index.html')}#/settings`
-    mainWindow.loadURL(settingsUrl)
-  }
+  createSettingsWindow()
 }
 
 // 显示关于对话框
@@ -233,7 +298,7 @@ function showAbout() {
     type: 'info',
     title: '关于 iMaid',
     message: 'iMaid - 智能桌宠',
-    detail: '版本: 0.2.0\n悬浮式智能桌面宠物\n支持语音交互、记忆功能'
+    detail: '版本: 0.3.0\n悬浮式智能桌面宠物\n支持语音交互、记忆功能'
   })
 }
 
@@ -254,10 +319,10 @@ function registerShortcuts() {
 function startVoiceService() {
   const voiceServicePath = path.join(__dirname, '../backend/voice_service.py')
   const backendDir = path.join(__dirname, '../backend')
-  
+
   try {
     require('fs').accessSync(voiceServicePath)
-    
+
     voiceServiceProcess = spawn('python', [voiceServicePath], {
       cwd: backendDir,
       detached: false,
@@ -290,7 +355,7 @@ function startVoiceMode() {
     mainWindow.show()
     mainWindow.focus()
   }
-  
+
   // 通知语音服务开始监听
   if (voiceServiceProcess) {
     voiceServiceProcess.stdin.write('wake\n')
@@ -314,7 +379,9 @@ function createMenu() {
           click: () => moveToCorner()
         },
         { type: 'separator' },
-        { role: 'quit' }
+        {
+          role: 'quit'
+        }
       ]
     },
     {
@@ -386,7 +453,7 @@ function setupIPC() {
 
   // 获取窗口配置
   ipcMain.handle('get-window-config', () => {
-    return WINDOW_CONFIG
+    return MAIN_WINDOW_CONFIG
   })
 
   // 获取窗口位置
@@ -444,6 +511,18 @@ function setupIPC() {
     }
     return { success: false, error: 'Voice service not running' }
   })
+
+  // 打开设置窗口
+  ipcMain.on('open-settings-window', () => {
+    openSettings()
+  })
+
+  // 关闭设置窗口
+  ipcMain.on('close-settings-window', () => {
+    if (settingsWindow) {
+      settingsWindow.close()
+    }
+  })
 }
 
 // 应用准备就绪
@@ -451,13 +530,13 @@ app.whenReady().then(() => {
   console.log('='.repeat(40))
   console.log('iMaid 应用启动中...')
   console.log('='.repeat(40))
-  
+
   createMenu()
   setupIPC()
   createWindow()
   createTray()
   registerShortcuts()
-  
+
   // 启动语音后台服务
   startVoiceService()
 
@@ -485,7 +564,7 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   app.isQuitting = true
   globalShortcut.unregisterAll()
-  
+
   // 关闭语音服务
   if (voiceServiceProcess) {
     voiceServiceProcess.kill()
